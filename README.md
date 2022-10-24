@@ -1,6 +1,39 @@
 # python-ES-log-parser
 Python agent for docker and custom logs parsing. ElasticSearch Push
 
+The python agent scans all configured logs and starts one process for each one
+- For container logs: 
+  it checks container configuration and only spawns a process when the container is started
+  When a container is stopped, the asociated process is terminated
+
+
+- For custom logs (TODO):
+  checks if file exists and is readable, then start a process
+
+
+### Build and startup
+
+```
+git clone https://github.com/fsan2401/python-ES-log-parser.git
+cd python-ES-log-parser
+
+docker build -t  python-elastic-logger .
+
+## See Config.py for 
+docker run -ti \
+    -e HOSTNAME=FSAN_LAPTOP \
+    -e SITENAME=Tandil \
+    -e ELASTIC_HOST=https://172.17.0.1:9200 \
+    -e ELASTIC_USER=elastic \
+    -e MOUNT_PREFIX=/data \
+    -e ELASTIC_PASS=-GOALi-Ux8+Q9wH68wvV \
+    -e LOG_LEVEL=INFO \
+    -v /var/lib/docker:/data/var/lib/docker \
+    --name=pyelastic
+    python-elastic-logger
+
+```
+
 
 ### PROPOSAL:
 
@@ -13,6 +46,7 @@ Python agent for docker and custom logs parsing. ElasticSearch Push
 - Code Splitting and modularization **DONE**
 - Dynamic parameters based on configuration or environment **DONE-REVIEWING**
 
+
 ### WORK IN PROGRESS
 
 - MULTILINE RECORDS: added some patterns for java, still checking possible patterns
@@ -22,8 +56,12 @@ Python agent for docker and custom logs parsing. ElasticSearch Push
 ### TODOs
 
 - Add syslog and custom log support
-- Define Final log Format
+- Add common format Parsers
+- Adjust Final log Format
 - Check if timezoned dates are required (ES alredy localizes client browser date)
+- Exclude current container log to avoid loop, just push errors directly to ES
+- Customize offset file directory ( to be shared so offsetfiles aren't lost on container rebuild)
+- Handle data when ES upload fails
 
 
 ### WORK LOG
