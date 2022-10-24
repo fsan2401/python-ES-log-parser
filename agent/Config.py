@@ -37,10 +37,3 @@ MOUNT_PREFIX = os.getenv("MOUNT_PREFIX") or '/data'
 DOCKER_LOGS = os.getenv("DOCKER_LOGS") or '/var/lib/docker/containers'
 CUSTOM_LOGS = os.getenv("CUSTOM_LOGS") or False
 
-
-""" 
-/var/log/syslog|syslog
-/var/log/apache2/logs/access_log|apache
-/opt/java/logs/catalina.out|java
-/tmp/customlog
-"""
