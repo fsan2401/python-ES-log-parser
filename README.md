@@ -55,6 +55,7 @@ docker run -ti \
 
 ### TODOs
 
+- Code Comments 
 - Add syslog and custom log support
 - Add common format Parsers
 - Adjust Final log Format

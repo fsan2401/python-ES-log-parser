@@ -1,5 +1,7 @@
 """
     Message Class
+    Stores Basic Message data
+    Multiline and Date Checks
 """
 
 from datetime import datetime
@@ -12,7 +14,7 @@ import re
 from Config import HOSTNAME,SITENAME,DATE_FORMAT,MULTILINE_TIME_OFFSET,log
 
 multiline_regex = r"^(\t|\s\s|\\u0009\\u0009).*$"
-dateregex = "(\d{4}(-|\/)\d{2}(-|\/)\d{2}T?\s?\d{2}:\d{2}:\d{2}(\.|,)?\d*(|-|\+)?.*?)(\s|\])"
+dateregex = r"(\d{4}(-|\/)\d{2}(-|\/)\d{2}T?\s?\d{2}:\d{2}:\d{2}(\.|,)?\d*(|-|\+)?.*?)(\s|\])"
 
 
 def formatDate(date_obj):
@@ -22,9 +24,8 @@ def formatDate(date_obj):
     return date_obj.strftime(DATE_FORMAT);
 
 
-
-
 class Message():
+
     def __init__(self,line,reader):
         
         self.parsed_date = False
@@ -37,6 +38,7 @@ class Message():
             "parsed": "false"
         }
 
+
     def extractDate(self):
         try:
             matches = re.match(dateregex, self.data['message'], re.MULTILINE)
@@ -46,6 +48,7 @@ class Message():
         except:
             #log.exception(e)
             return False
+
 
     def setData(self,payload):
 
@@ -62,8 +65,6 @@ class Message():
             self.data['@timestamp'] = formatDate(self.data['@timestamp'])
 
 
-
-
     def getData(self):
         log.debug("current message: {} {}".format(self.data,self.parsed_date))
 
@@ -77,8 +78,8 @@ class Message():
 
 
     def appendLine(self,new_message):
-       # print("NMD: {}" new_message.data)
         self.data['message'] += new_message.data['message']
+
 
     def isMultiline(self,prevMessage):
         """
@@ -92,7 +93,7 @@ class Message():
             return False
 
         datediff = abs((self.parsed_date-prevMessage.parsed_date).total_seconds())
-        #if date is out of range, different message
+        #if date is out of range, different message,skip
         if datediff > MULTILINE_TIME_OFFSET:
             return False
 

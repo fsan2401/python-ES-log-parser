@@ -1,7 +1,3 @@
-import json
-from Parser import Parser
-import datetime
-
 """
     Custom Parsers:
 
@@ -13,47 +9,52 @@ import datetime
         }
 
 """
+import json
+from Parser import Parser
+import datetime
+
 
 def parseSyslog(p_line):
     """
-    Sample of syslog object
-    {'timestamp': datetime.datetime(2016, 7, 11, 19, 3, 45), 'hostname': 'cory-desktop', 'appname': 'dbus-daemon', 'pid': '1906', 'message': '[session uid=1000 pid=1906] Activating via systemd: service name=\'org.freedesktop.Tracker1.Miner.Extract\' unit=\'tracker-extract.service\' requested by \':1.2\' (uid=1000 pid=1902 comm="/usr/libexec/tracker-miner-fs " label="unconfined")'}
+    Custom Log parsing
     """
+    #TODO - evaluate regexes, format json according to parsed data
+
     line = syslog_parser.parse(p_line)
     #line = str(line['appname'])+' '+str(line['pid']) +' '+str(line['message'])
-
     return {
         "@timestamp": formatDate( line['timestamp']),
         "message_data": json.dumps(line),
         "parsed": "syslog"
     }
 
+
 def parseContainerJSONLog(p_line):
     """
-    TODO: only works for json logs, add support for custom log drivers
+     Docker container json log parsing
     """ 
     j = json.loads(p_line.strip('\\r\\n'));
     try:
         ## j.log is json
-         return  {
+        return  {
             "@timestamp": j['time'],
             "message_data": json.loads(j['log'].strip('\\r\\n')),
             "parsed": "json"
         }
     except Exception as e:
         ## j.log not json, return text in message
-         return  {
+        return  {
             "@timestamp": j['time'],
             "message": j['log'],
             "parsed": "text"
         }
-
    
 
 def parseContainerPlainLog(p_line):
     """
-    Custom logging drivers - TODO: remove special characters
+    Docker Custom logging drivers syslog, local (not json)
     """
+    #TODO: remove special characters
 
     return  {
         "message": p_line,
@@ -62,6 +63,9 @@ def parseContainerPlainLog(p_line):
 
 
 def getParser(parse_mode):
+    """
+        Select parser based on configuration
+    """
     parseFunction = {
             "syslog": parseSyslog,
             "docker-json": parseContainerJSONLog,

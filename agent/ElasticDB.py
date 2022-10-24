@@ -1,13 +1,18 @@
+"""
+    Elasticsearch module
+
+    ## TODO - define if BasicAuth fits
+"""
 import requests
-from requests.auth import HTTPBasicAuth
-
-
 import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+from requests.auth import HTTPBasicAuth
 from Config import ELASTIC_HOST,ELASTIC_USER,ELASTIC_PASS,log
 
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 class ElasticDB():
+
     def __init__(self):
         self.auth = HTTPBasicAuth(ELASTIC_USER,ELASTIC_PASS)
         self.push_url = ELASTIC_HOST+'/_bulk'
@@ -15,7 +20,11 @@ class ElasticDB():
         #self.headers = headers = {'content-type': 'application/json', 'X-Auth-PassCode': self.key, 'X-Auth-AgentID': self.agentID}
         self.headers = headers = {'content-type': 'application/json' }
 
+
     def isAlive(self):
+        """
+        Connectivity Test
+        """        
         try:
             req = requests.get(self.health_url,headers=self.headers,auth=self.auth, verify=False)
             if (req.status_code == 200):
@@ -26,12 +35,16 @@ class ElasticDB():
             log.debug(e)
             return False
 
+
     def pushLogs(self,payload):
+        """
+        Sends log data to database
+        """
         data = '\n'.join(payload)+"\n";
-      #  log.debug("sending payload: {}".format(data));
+        #log.debug("sending payload: {}".format(data));
         try:
             res = requests.post(self.push_url,headers=self.headers,auth=self.auth, data = data,verify=False)
-           # log.debug("response: {} {} ".format(res.status_code,res.text))
+            #log.debug("response: {} {} ".format(res.status_code,res.text))
             if (res.status_code != 200):
                 raise ValueError("Problematic payload")
             if res.json()['errors'] == True:
@@ -40,6 +53,7 @@ class ElasticDB():
             self.saveProblematicPayload(data)
             log.exception(e)
             log.error("response: {} {} ".format(res.status_code,res.text[0:300]))
+
 
     def saveProblematicPayload(self,payload):
         """
