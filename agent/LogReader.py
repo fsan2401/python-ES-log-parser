@@ -16,6 +16,7 @@ class LogReader():
         self.name = name
         self.path = path
         self.parseFunction = logparsers.getParser(parse_mode)
+        self.container_id = containerID
         self.reader = Pygtail(path,offset_file=name+".offset",read_from_end=True)
 
 

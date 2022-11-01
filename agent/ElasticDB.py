@@ -7,18 +7,30 @@ import requests
 import urllib3
 
 from requests.auth import HTTPBasicAuth
-from Config import ELASTIC_HOST,ELASTIC_USER,ELASTIC_PASS,log
+from Config import ELASTIC_HOST,ELASTIC_USER,ELASTIC_PASS,ELASTIC_KEY,ELASTIC_AGENTID,log
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class ElasticDB():
 
     def __init__(self):
-        self.auth = HTTPBasicAuth(ELASTIC_USER,ELASTIC_PASS)
         self.push_url = ELASTIC_HOST+'/_bulk'
         self.health_url = ELASTIC_HOST+'/_cat/health'
-        #self.headers = headers = {'content-type': 'application/json', 'X-Auth-PassCode': self.key, 'X-Auth-AgentID': self.agentID}
-        self.headers = headers = {'content-type': 'application/json' }
+
+        if ELASTIC_USER and ELASTIC_PASS:
+            self.auth = HTTPBasicAuth(ELASTIC_USER,ELASTIC_PASS)
+            self.headers = headers = {'content-type': 'application/json' }
+        else:
+            if ELASTIC_KEY and ELASTIC_AGENTID:
+                self.auth = False
+                self.headers = headers = {
+                    'content-type': 'application/json', 
+                    'X-Auth-PassCode': ELASTIC_KEY, 
+                    'X-Auth-AgentID': ELASTIC_AGENTID
+                }
+            else:
+                raise ValueError("Must provide elastic authentication USER+PASS or KEY+AGENTID")
+
 
 
     def isAlive(self):
@@ -51,7 +63,7 @@ class ElasticDB():
                 raise ValueError("Problematic payload")
         except Exception as e:
             self.saveProblematicPayload(data)
-            log.exception(e)
+            log.error(e)
             log.error("response: {} {} ".format(res.status_code,res.text[0:300]))
 
 

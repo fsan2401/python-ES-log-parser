@@ -10,21 +10,29 @@
 
 """
 import json
-from Parser import Parser
-import datetime
+
+syslog_regex = r'(?P<date>\w{3}\s\d+\s\d{2}:\d{2}:\d{2})\s(?P<host>\S+)\s(?P<app>\S+)(\[(?P<pid>\d+)\]):(?P<message>.*)$'
+syslog_reg_nopid = r'^(?P<date>\w{3}\s\d+\s\d{2}:\d{2}:\d{2})\s(?P<host>\S+)\s(?P<app>\S+):(?P<message>.*)'
 
 
 def parseSyslog(p_line):
     """
     Custom Log parsing
     """
-    #TODO - evaluate regexes, format json according to parsed data
+    matches = re.match(syslog_regex, p_line, re.MULTILINE)
+    matchedobj = {}
+    if matches is not None:
+        matchedobj = matches.groupdict()
+        log.debug("line: {} Matches: {}".format(p_line,matchedobj))
+    else:
+        matches = re.match(syslog_reg_nopid, p_line, re.MULTILINE)
+        if matches is not None:
+            matchedobj = matches.groupdict()
+            log.debug("line: {} Matches: {}".format(p_line,matchedobj))
 
-    line = syslog_parser.parse(p_line)
-    #line = str(line['appname'])+' '+str(line['pid']) +' '+str(line['message'])
     return {
-        "@timestamp": formatDate( line['timestamp']),
-        "message_data": json.dumps(line),
+        "@timestamp": matchedobj.get('date')
+        "message_data": json.dumps(matchedobj),
         "parsed": "syslog"
     }
 

@@ -1,7 +1,25 @@
-from Config import DOCKER_LOGS,MOUNT_PREFIX,log
+from Config import DOCKER_LOGS,SYSLOG,MOUNT_PREFIX,log
 from os import listdir,path,access,R_OK
 from os.path import isfile
 import json
+
+def getSyslog():
+
+    try:
+        if path.isfile(SYSLOG) and access(cached_log,R_OK):
+            return [{ 
+                "logID": "syslog",
+                "name": "syslog",
+                "isValid": True,
+                "path": SYSLOG,
+                "parse_mode":"syslog"
+            }]
+        else:
+            log.warn("syslog {} not accesible".format(SYSLOG))
+            return [];
+    except Exception as e:
+        log.exception(e)
+        exit(2)        
 
 def getDockerLogs():
     """
@@ -30,6 +48,7 @@ def getDockerLogs():
                     if log_path == "":
                         cached_log = path.join(full_path,"container-cached.log")
                         local_logs = path.join(full_path,"local_logs/container.log")
+                        log.debug("local paths: {} - {}".format(cached_log,local_logs))
                         if isfile(cached_log) and access(cached_log,R_OK):
                             log_path = cached_log
                             parse_mode = "docker-plain"

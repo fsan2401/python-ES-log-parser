@@ -14,7 +14,7 @@ import re
 from Config import HOSTNAME,SITENAME,DATE_FORMAT,MULTILINE_TIME_OFFSET,log
 
 multiline_regex = r"^(\t|\s\s|\\u0009\\u0009).*$"
-dateregex = r"(\d{4}(-|\/)\d{2}(-|\/)\d{2}T?\s?\d{2}:\d{2}:\d{2}(\.|,)?\d*(|-|\+)?.*?)(\s|\])"
+dateregex = r"((\d{4}(-|\/)\d{2}(-|\/)\d{2}T?\s?\d{2}:\d{2}:\d{2}(\.|,)?\d*(|-|\+)?.*?)(\s|\])|([A-Z][a-z]{2} \d+ \d{2}:\d{2}:\d{2}))"
 
 
 def formatDate(date_obj):
@@ -33,7 +33,8 @@ class Message():
             "hostName": HOSTNAME,
             "siteName": SITENAME,
             "logFile":  reader.path,
-            "container": reader.name,
+            "name": reader.name,
+            "container_id": reader.container_id
             "message": line,
             "parsed": "false"
         }
@@ -96,6 +97,10 @@ class Message():
         #if date is out of range, different message,skip
         if datediff > MULTILINE_TIME_OFFSET:
             return False
+
+        #syslog, could not parse line, add to next line
+        if self.data['parsed'] == "syslog" and 'message_data' not in self.data:
+            return True
 
         #try to match common multiline patterns
         matches = re.match(multiline_regex, self.data["message"], re.MULTILINE)
