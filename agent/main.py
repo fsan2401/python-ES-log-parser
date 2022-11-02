@@ -1,7 +1,7 @@
 
 from multiprocessing import Process
 from time import sleep
-from Config import log, DOCKER_LOGS, SYSLOG, MOUNT_PREFIX, SCANNER_SLEEP_TIME, READER_SLEEP_TIME
+from Config import log, DOCKER_LOGS, SYSLOG, SCANNER_SLEEP_TIME, READER_SLEEP_TIME
 
 from ElasticDB import ElasticDB
 from LogReader import LogReader
@@ -50,6 +50,7 @@ if __name__ == "__main__":
             if (SYSLOG):
                 log_list.extend(scanners.getSyslog())
             
+            log.debug("logs: {}".format(log_list))
             #foreach found log check validity and start/stop process
             for i in range(len(log_list)):
                 log_data = log_list[i]

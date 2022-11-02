@@ -7,7 +7,7 @@ import requests
 import urllib3
 
 from requests.auth import HTTPBasicAuth
-from Config import ELASTIC_HOST,ELASTIC_USER,ELASTIC_PASS,ELASTIC_KEY,ELASTIC_AGENTID,log
+from Config import ELASTIC_HOST,ELASTIC_USER,ELASTIC_PASS,ELASTIC_KEY,ELASTIC_AGENTID,ELASTIC_APIKEY,log
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -29,7 +29,14 @@ class ElasticDB():
                     'X-Auth-AgentID': ELASTIC_AGENTID
                 }
             else:
-                raise ValueError("Must provide elastic authentication USER+PASS or KEY+AGENTID")
+                if ELASTIC_APIKEY:
+                    self.auth = False
+                    self.headers = headers = {
+                        'content-type': 'application/json', 
+                        'Authorization': 'ApiKey '+ELASTIC_APIKEY
+                    }
+                else:
+                    raise ValueError("Must provide elastic authentication USER+PASS or KEY+AGENTID")
 
 
 
@@ -38,7 +45,7 @@ class ElasticDB():
         Connectivity Test
         """        
         try:
-            req = requests.get(self.health_url,headers=self.headers,auth=self.auth, verify=False)
+            req = requests.get(self.health_url,headers=self.headers,auth=self.auth, verify=False, timeout=20)
             if (req.status_code == 200):
                 log.debug(req)
                 return True
@@ -55,7 +62,7 @@ class ElasticDB():
         data = '\n'.join(payload)+"\n";
         #log.debug("sending payload: {}".format(data));
         try:
-            res = requests.post(self.push_url,headers=self.headers,auth=self.auth, data = data,verify=False)
+            res = requests.post(self.push_url,headers=self.headers,auth=self.auth, data = data,verify=False, timeout=20)
             #log.debug("response: {} {} ".format(res.status_code,res.text))
             if (res.status_code != 200):
                 raise ValueError("Problematic payload")

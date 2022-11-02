@@ -1,4 +1,4 @@
-from Config import DOCKER_LOGS,SYSLOG,MOUNT_PREFIX,log
+from Config import DOCKER_LOGS,SYSLOG,log
 from os import listdir,path,access,R_OK
 from os.path import isfile
 import json
@@ -6,7 +6,7 @@ import json
 def getSyslog():
 
     try:
-        if path.isfile(SYSLOG) and access(cached_log,R_OK):
+        if path.isfile(SYSLOG) and access(SYSLOG,R_OK):
             return [{ 
                 "logID": "syslog",
                 "name": "syslog",
@@ -30,8 +30,8 @@ def getDockerLogs():
     """ 
     list_of_containers = [];
     try:
-        docker_directory = MOUNT_PREFIX+DOCKER_LOGS
-        log.debug(docker_directory)
+        docker_directory = DOCKER_LOGS
+        log.debug("docker_dir: {}".format(docker_directory))
         for container_folder in listdir(docker_directory):
             full_path=path.join(docker_directory,container_folder)
             if path.isdir(full_path):
@@ -41,26 +41,26 @@ def getDockerLogs():
 
                     container_ID = str(container_config_data["ID"]).strip("/")
                     container_name = str(container_config_data["Name"]).strip("/")
-                    log_path = container_config_data['LogPath']
+                    log_path = container_config_data['LogPath'].replace('/var/lib/docker/containers',DOCKER_LOGS)
                     running = container_config_data['State']['Running']
 
                     ##REVIEW TTHIS BLOCK
                     if log_path == "":
                         cached_log = path.join(full_path,"container-cached.log")
-                        local_logs = path.join(full_path,"local_logs/container.log")
-                        log.debug("local paths: {} - {}".format(cached_log,local_logs))
+                        local_log = path.join(full_path,"local-logs/container.log")
+                        log.debug("local paths: {} - {}".format(cached_log,local_log))
                         if isfile(cached_log) and access(cached_log,R_OK):
                             log_path = cached_log
                             parse_mode = "docker-plain"
                             isFile = True
                             isaccesible = True
-                        if isfile(local_logs) and access(local_log,R_OK):
+                        if isfile(local_log) and access(local_log,R_OK):
                             log_path = local_log
                             parse_mode = "docker-plain"
                             isFile = True
                             isaccesible = True
                     else:
-                        log_path = MOUNT_PREFIX+log_path
+                        log_path = log_path
                         isFile = isfile(log_path) 
                         isaccesible = access(log_path, R_OK)
                         parse_mode = "docker-json"

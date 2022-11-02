@@ -10,6 +10,8 @@
 
 """
 import json
+import re
+from Config import log 
 
 syslog_regex = r'(?P<date>\w{3}\s\d+\s\d{2}:\d{2}:\d{2})\s(?P<host>\S+)\s(?P<app>\S+)(\[(?P<pid>\d+)\]):(?P<message>.*)$'
 syslog_reg_nopid = r'^(?P<date>\w{3}\s\d+\s\d{2}:\d{2}:\d{2})\s(?P<host>\S+)\s(?P<app>\S+):(?P<message>.*)'
@@ -31,8 +33,8 @@ def parseSyslog(p_line):
             log.debug("line: {} Matches: {}".format(p_line,matchedobj))
 
     return {
-        "@timestamp": matchedobj.get('date')
-        "message_data": json.dumps(matchedobj),
+        "@timestamp": matchedobj.get('date'),
+        "message_data": matchedobj,
         "parsed": "syslog"
     }
 
@@ -65,8 +67,8 @@ def parseContainerPlainLog(p_line):
     #TODO: remove special characters
 
     return  {
-        "message": p_line,
-        "parsed": parsed
+        "message": p_line[19:-3],
+        "parsed": False
     }
 
 

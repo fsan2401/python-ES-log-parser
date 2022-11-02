@@ -20,17 +20,39 @@ cd python-ES-log-parser
 docker build -t  python-elastic-logger .
 
 ## See Config.py for options
-docker run -ti \
-    -e HOSTNAME=FSAN_LAPTOP \
-    -e SITENAME=Tandil \
-    -e ELASTIC_HOST=https://172.17.0.1:9200 \
+
+docker run -d \
+  --restart=unless-stopped
+  -e HOSTNAME=FSAN_LAPTOP  \
+  -e SITENAME=Tandil \
+  -e ELASTIC_HOST=https://192.168.0.111:9200 \
+  -e LOG_LEVEL=INFO \
+  -v /var/lib/docker:/data/var/lib/docker  \
+  -v /var/log/:/data/var/log  \
+  -e DOCKER_LOGS=/data/var/lib/docker/containers  \
+  -e SYSLOG=/data/var/log/syslog  \
+  -e ELASTIC_APIKEY=NEFjNU9ZUUJldWlmc1F2TlFQUzU6aThhaUxObHVUVU90bzBtQUFteXNhUQ==  \
+  --name=pyelastic  \
+  python-elastic-logger
+
+```
+
+### ELASTIC AUTH
+
+- Basic
+```
     -e ELASTIC_USER=elastic \
-    -e MOUNT_PREFIX=/data \
     -e ELASTIC_PASS=-GOALi-Ux8+Q9wH68wvV \
-    -e LOG_LEVEL=INFO \
-    -v /var/lib/docker:/data/var/lib/docker \
-    --name=pyelastic
-    python-elastic-logger
+```
+- Api key 
+```
+  -e ELASTIC_APIKEY=NEFjNU9ZUUJldWlmc1F2TlFQUzU6aThhaUxObHVUVU90bzBtQUFteXNhUQ==  \
+
+```
+- Agent and key (not tested, dont know how to get these)
+```
+  -e ELASTIC_KEY=key
+  -e ELASTIC_AGENTID=agent
 
 ```
 
@@ -42,7 +64,7 @@ docker run -ti \
 - periodical directory re-scan for new containers/logs **DONE**
 - Detection of multiple-line log records **DONE**
 - Parsing of Container log records into JSON (whenever posible) **DONE**
-- Error handling when reading, parsing or uploading data  **DONE-REVIEWING**
+- Error handling when reading, parsing or uploading data  **DONE**
 - Code Splitting and modularization **DONE**
 - Dynamic parameters based on configuration or environment **DONE**
 
@@ -58,10 +80,19 @@ docker run -ti \
 - **DONE** Code Comments 
 - **DONE** Add syslog support
 - **DONE** Add common format Parsers
-- Adjust Final log Format
-- Check if timezoned dates are required (ES alredy localizes client browser date)
+- **DONE**Adjust Final log Format
+- **DONE** Check if timezoned dates are required (ES alredy localizes client browser date)
 - Exclude current container DEBUG log to avoid trash push to elastic
 - Customize offset file directory ( to be shared so offsetfiles aren't lost on container rebuild)
 - Handle data when ES upload fails (discard, log, save to disk to upload when ES is available)
-- 2022-11-01 - Re-Compile docker container and test missing
-- 2022-11-01 - Docker container custom logging review missing
+- **DONE** 2022-11-01 - Re-Compile docker container and test missing
+- **DONE** 2022-11-01 - Docker container custom logging review missing
+
+
+## NEW FEATURES
+
+- Syslog parser added
+- Custom docker log methods added (syslog,local-log)
+- Added timeout for Elastic Search connection
+- Added filter for empty messages
+

@@ -17,13 +17,18 @@ class LogReader():
         self.path = path
         self.parseFunction = logparsers.getParser(parse_mode)
         self.container_id = containerID
-        self.reader = Pygtail(path,offset_file=name+".offset",read_from_end=True)
+        self.reader = Pygtail(path,offset_file=name+".offset",read_from_end=True,encoding='latin-1')
 
 
     def getLines(self):
         """
         """
-        newLines = self.reader.readlines()
+        newLines = []
+        try:
+            newLines = self.reader.readlines()
+        except Exception as e:
+            log.exception(e)
+
         if len(newLines) > 0:
             log.debug("Log {} has {} new lines @ {}".format(self.path,len(newLines),self.name))
             message_list = []
@@ -31,14 +36,17 @@ class LogReader():
                 message = Message(line,self)
                 try:
                     message.setData(self.parseFunction(line))
-                except:
-                    pass
+                except Exception as e:
+                    log.debug(e)
 
-                if (len(message_list) > 0 and message.isMultiline(prevMessage)):
-                    prevMessage.appendLine(message)
-                    message_list[len(message_list)-1] = message_prefix+prevMessage.getData()
+                if len(message.data['message']) > 0: #avoid empty messages
+                    if (len(message_list) > 0 and message.isMultiline(prevMessage)):
+                        prevMessage.appendLine(message)
+                        message_list[len(message_list)-1] = message_prefix+prevMessage.getData()
+                    else:
+                        message_list.append(message_prefix+message.getData())
+                        prevMessage = message
                 else:
-                    message_list.append(message_prefix+message.getData())
-                    prevMessage = message
+                    log.debug("discard empty message {}".format(message.getData()))
             return message_list
         return False

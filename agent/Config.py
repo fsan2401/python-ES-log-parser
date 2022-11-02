@@ -33,9 +33,11 @@ ELASTIC_INDEX = os.getenv("ELASTIC_INDEX") or "logdata"
 #Basic Auth
 ELASTIC_USER = os.getenv("ELASTIC_USER") or False
 ELASTIC_PASS = os.getenv("ELASTIC_PASS") or False
-#Api-key Auth
+#Agent - key Auth
 ELASTIC_KEY = os.getenv("ELASTIC_KEY") or False
 ELASTIC_AGENTID = os.getenv("ELASTIC_AGENTID") or False
+#Api-Key AUTH
+ELASTIC_APIKEY = os.getenv("ELASTIC_APIKEY") or False
 
 
 
@@ -43,7 +45,6 @@ ELASTIC_AGENTID = os.getenv("ELASTIC_AGENTID") or False
 message_prefix = '{"index": {"_index": "'+ELASTIC_INDEX+'"} } \n'
 
 #LOGS
-MOUNT_PREFIX = os.getenv("MOUNT_PREFIX") or '/data'
 DOCKER_LOGS = os.getenv("DOCKER_LOGS") or  False #'/var/lib/docker/containers'
 SYSLOG = os.getenv("SYSLOG") or False
 

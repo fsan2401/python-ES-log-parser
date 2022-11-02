@@ -14,7 +14,7 @@ import re
 from Config import HOSTNAME,SITENAME,DATE_FORMAT,MULTILINE_TIME_OFFSET,log
 
 multiline_regex = r"^(\t|\s\s|\\u0009\\u0009).*$"
-dateregex = r"((\d{4}(-|\/)\d{2}(-|\/)\d{2}T?\s?\d{2}:\d{2}:\d{2}(\.|,)?\d*(|-|\+)?.*?)(\s|\])|([A-Z][a-z]{2} \d+ \d{2}:\d{2}:\d{2}))"
+dateregex = r'((\d{4}(-|\/)\d{2}(-|\/)\d{2}T?\s?\d{2}:\d{2}:\d{2}(\.|,)?\d*(|-|\+)?.*?)(\s|\])|([A-Z][a-z]{2} \d+ \d{2}:\d{2}:\d{2}))'
 
 
 def formatDate(date_obj):
@@ -34,7 +34,7 @@ class Message():
             "siteName": SITENAME,
             "logFile":  reader.path,
             "name": reader.name,
-            "container_id": reader.container_id
+            "container_id": reader.container_id,
             "message": line,
             "parsed": "false"
         }
@@ -42,10 +42,12 @@ class Message():
 
     def extractDate(self):
         try:
-            matches = re.match(dateregex, self.data['message'], re.MULTILINE)
-            log.debug("line: {} Matches: {}".format(self.data['message'],matches))
+            matches = re.search(dateregex, self.data['message'])
+            log.debug("DATEPARSE line: {} Matches: {}".format(self.data['message'],matches))
             if matches is not None:
-                return dateutil.parser.parse(matches[0])
+                return dateutil.parser.parse(matches[0].replace(']',''))
+            else:
+                return False
         except:
             #log.exception(e)
             return False
@@ -58,12 +60,12 @@ class Message():
 
         ## if no timestamp, try to extract from message
         if not '@timestamp' in self.data.keys():
-            parsed_date = self.extractDate()
-            self.data['@timestamp'] = formatDate(parsed_date or datetime.now)
-            self.parsed_date = parsed_date
+            self.parsed_date = self.extractDate()
+            self.data['@timestamp'] = formatDate(self.parsed_date or datetime.now())
+            
         else:
             self.parsed_date =  dateutil.parser.parse(self.data['@timestamp'])
-            self.data['@timestamp'] = formatDate(self.data['@timestamp'])
+            self.data['@timestamp'] = formatDate(self.parsed_date)
 
 
     def getData(self):
